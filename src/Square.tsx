@@ -1,24 +1,6 @@
 import React from "react";
 import * as shogi from "shogi-lib";
-import { pieceToKIF } from "./util";
-
-export type PieceProps = {
-  piece: shogi.Piece.Piece;
-};
-
-export const Piece: React.FC<PieceProps> = ({ piece }) => {
-  const white = shogi.Piece.color(piece) === "w";
-  return (
-    <div
-      className="piece"
-      style={{
-        transform: white ? "rotate(180deg)" : undefined,
-      }}
-    >
-      {piece !== undefined ? pieceToKIF(piece) : undefined}
-    </div>
-  );
-};
+import { Piece } from "./Piece";
 
 export type SquareProps = {
   piece: shogi.Piece.Piece | undefined;
@@ -28,7 +10,7 @@ export type SquareProps = {
 };
 
 export const Square: React.FC<SquareProps> = ({ piece, from, attack, handleClick }) => {
-  let background = "white";
+  let background = "#FDD775";
   if (from) {
     background = "lightgreen";
   } else if (attack) {
@@ -40,16 +22,21 @@ export const Square: React.FC<SquareProps> = ({ piece, from, attack, handleClick
       className="square"
       style={{
         background,
-        fontSize: 30,
+        width: "100%",
         border: "1px solid #666",
-        width: "11.111111%",
-        height: "11.111111%",
         boxSizing: "border-box",
-        textAlign: "center",
+        position: "relative",
+        // 駒1つが52x60なので
+        // 60/52*100 => 115.38...
+        paddingTop: "115.38461538461537%",
       }}
       onClick={handleClick}
     >
-      {piece === undefined ? <span>{"　"}</span> : <Piece piece={piece} />}
+      {piece !== undefined ? (
+        <div style={{ position: "absolute", width: "100%", left: 0, bottom: 0 }}>
+          <Piece piece={piece} />
+        </div>
+      ) : undefined}
     </div>
   );
 };

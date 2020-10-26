@@ -33,12 +33,3 @@ export function pieceToKIF(piece: shogi.Piece.Piece) {
     case "+r": return "竜";
   }
 }
-
-// 適当
-export function numToKanji(n: number): string {
-  const kanji = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
-  if (n <= 10) {
-    return kanji[n];
-  }
-  return kanji[10] + kanji[n % 10];
-}

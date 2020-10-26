@@ -14,10 +14,11 @@ export const Board: React.FC<BoardProps> = ({ position, from, attack, handleClic
     <div
       className="board"
       style={{
-        display: "flex",
-        flexWrap: "wrap",
+        display: "grid",
         width: "100%",
         height: "100%",
+        gridTemplateColumns: "repeat(9, 1fr)",
+        gridTemplateRows: "repeat(9, 1fr)",
         userSelect: "none",
       }}
     >

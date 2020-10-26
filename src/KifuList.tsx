@@ -4,10 +4,11 @@ import * as shogi from "shogi-lib";
 export type KifuListProps = {
   game: shogi.Game;
   nth: number;
+  size?: number;
   handleClick: (nth: number) => void;
 };
 
-export const KifuList: React.FC<KifuListProps> = ({ game, nth, handleClick }) => {
+export const KifuList: React.FC<KifuListProps> = ({ game, nth, size, handleClick }) => {
   const makeKifuList = (game: shogi.Game) => {
     const list = [];
     for (
@@ -29,8 +30,8 @@ export const KifuList: React.FC<KifuListProps> = ({ game, nth, handleClick }) =>
   return (
     <select
       className="kifulist"
-      // sizeを自動で調整するには?
-      size={18}
+      // TODO: sizeを自動で調整するには?
+      size={size ?? 10}
       value={nth}
       onChange={(e) => handleClick(Number(e.target.value))}
     >

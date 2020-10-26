@@ -1,6 +1,6 @@
 import React from "react";
 import * as shogi from "shogi-lib";
-import { pieceToKIF, numToKanji } from "./util";
+import { Piece } from "./Piece";
 
 export type HandProps = {
   position: shogi.Position;
@@ -16,40 +16,64 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, handleClick 
     <div
       className={`hand-${color}`}
       style={{
-        display: "flex",
-        flexDirection: "column",
-        fontSize: 30,
-        marginLeft: 3,
-        marginRight: 3,
-        height: "100%",
-        textAlign: "center",
-        transform: color === "w" ? "rotate(180deg)" : undefined,
+        background: "#FDD775",
+        border: "1px solid #666",
+        boxSizing: "border-box",
+        display: "grid",
+        gridTemplateRows: "1fr",
+        gridTemplateColumns: "repeat(9, 1fr)",
         userSelect: "none",
+        position: "relative",
+        // 駒1つが52x60なので駒台は52*9x60
+        // => 60/(52*9)*100 = 12.82...
+        paddingTop: "12.82051282051282%",
       }}
     >
-      <div>{color === "b" ? "☗" : "☖"}</div>
       {pieces.map((piece) => {
         const n = position.getHand(piece);
         if (n instanceof Error) {
+          // ???
           console.error(`position.getHand(${piece}) returned error`);
           return undefined;
         }
         if (n === 0) return undefined;
-        let background = "white";
+        let background = undefined;
         if (from === piece) {
           background = "lightgreen";
         }
         return (
-          <div key={piece}>
+          <div
+            style={{
+              background,
+              position: "relative",
+            }}
+            key={piece}
+          >
             <div
               onClick={() => handleClick(piece)}
               style={{
-                background,
+                position: "absolute",
+                left: 0,
+                bottom: 0,
               }}
             >
-              {pieceToKIF(piece)}
+              <Piece piece={piece} />
+              {n > 1 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    color: "red",
+                    fontWeight: "bold",
+                    fontSize: 7,
+                    top: color === "b" ? 0 : undefined,
+                    bottom: color === "w" ? 0 : undefined,
+                    right: 0,
+                  }}
+                >
+                  {n}
+                </div>
+              )}
             </div>
-            <div>{n > 1 && numToKanji(n)}</div>
           </div>
         );
       })}

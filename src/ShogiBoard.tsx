@@ -4,6 +4,18 @@ import { Board } from "./Board";
 import { Hand } from "./Hand";
 import { KifuList } from "./KifuList";
 import * as _ from "lodash";
+import styled from "styled-components";
+
+// よく分からない適当
+// 任意のサイズでスクロールする必要がないようにぴったり合わせるには?
+const ShogiBoardWrapper = styled.div`
+  @media (min-aspect-ratio: 99/100) {
+    width: 67vh;
+  }
+  @media (max-aspect-ratio: 100/99) {
+    width: 67vw;
+  }
+`;
 
 const calcNth = (game: shogi.Game) => {
   let i = 0;
@@ -159,54 +171,57 @@ export const ShogiBoard = () => {
     const clone = _.cloneDeep(game);
     if (clone.goToNth(nth) instanceof Error) {
       // ???
-      console.error("");
+      console.error("goToNth");
       return;
     }
     updateGame(clone);
   };
 
   return (
-    <div style={{ display: "flex" }}>
-      <div
-        className="shogiboard"
-        style={{
-          display: "flex",
-          userSelect: "none",
-        }}
-      >
-        <div>
-          <Hand
-            position={position}
-            color={"w"}
-            from={clickFrom?.type === "drop" ? clickFrom.piece : undefined}
-            handleClick={handleHandClick}
-          />
+    <div style={{ display: "flex", justifyContent: "center" }}>
+      <ShogiBoardWrapper>
+        <div
+          className="shogiboard"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            userSelect: "none",
+            marginRight: 10,
+          }}
+        >
+          <div>
+            <Hand
+              position={position}
+              color={"w"}
+              from={clickFrom?.type === "drop" ? clickFrom.piece : undefined}
+              handleClick={handleHandClick}
+            />
+          </div>
+          <div className="board" style={{ marginTop: 5, marginBottom: 5 }}>
+            <Board
+              position={position}
+              from={clickFrom?.type === "normal" ? clickFrom.from : undefined}
+              attack={attack}
+              handleClick={handleBoardClick}
+            />
+          </div>
+          <div>
+            <Hand
+              position={position}
+              color={"b"}
+              from={clickFrom?.type === "drop" ? clickFrom.piece : undefined}
+              handleClick={handleHandClick}
+            />
+          </div>
         </div>
-        <div>
-          <Board
-            position={position}
-            from={clickFrom?.type === "normal" ? clickFrom.from : undefined}
-            attack={attack}
-            handleClick={handleBoardClick}
-          />
-        </div>
-        <div>
-          <Hand
-            position={position}
-            color={"b"}
-            from={clickFrom?.type === "drop" ? clickFrom.piece : undefined}
-            handleClick={handleHandClick}
-          />
-        </div>
-      </div>
+      </ShogiBoardWrapper>
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
         }}
       >
-        <div style={{ marginLeft: "auto", marginRight: "auto" }}>
+        <div style={{ marginLeft: "auto", marginRight: "auto", marginBottom: 10 }}>
           <KifuList game={game} nth={calcNth(game)} handleClick={handleKifuListClick} />
         </div>
         <div
@@ -214,6 +229,7 @@ export const ShogiBoard = () => {
           style={{
             display: "flex",
             justifyContent: "center",
+            flexWrap: "wrap",
           }}
         >
           <button
@@ -223,7 +239,7 @@ export const ShogiBoard = () => {
               updateGame(clone);
             }}
           >
-            {"<<"}
+            {"|<"}
           </button>
           <button
             onClick={() => {
@@ -250,7 +266,7 @@ export const ShogiBoard = () => {
               updateGame(clone);
             }}
           >
-            {">>"}
+            {">|"}
           </button>
         </div>
       </div>
