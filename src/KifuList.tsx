@@ -1,6 +1,20 @@
 import React from "react";
 import * as shogi from "shogi-lib";
 
+const moveDataToKIF = (moveData: shogi.MoveData.MoveData) => {
+  const kif = shogi.MoveData.toKIF(moveData, { turnUnicode: true });
+  switch (moveData.type) {
+    case "md_initial":
+      return kif.move;
+    case "md_normal":
+      return `${kif.ply}${kif.turn}${kif.move}${kif.from}`;
+    case "md_drop":
+    case "md_toryo":
+    case "md_chudan":
+      return `${kif.ply}${kif.turn}${kif.move}`;
+  }
+};
+
 export type KifuListProps = {
   game: shogi.Game;
   nth: number;
@@ -16,13 +30,7 @@ export const KifuList: React.FC<KifuListProps> = ({ game, nth, size, handleClick
       node !== undefined;
       node = node.next
     ) {
-      list.push(
-        node.lastMove === undefined
-          ? "=== 開始局面 ==="
-          : `${node.position.ply} ${node.position.turn === "b" ? "☖" : "☗"} ${shogi.Move.toUSI(
-              node.lastMove
-            )}`
-      );
+      list.push(moveDataToKIF(node.lastMove));
     }
     return list;
   };
@@ -34,6 +42,7 @@ export const KifuList: React.FC<KifuListProps> = ({ game, nth, size, handleClick
       size={size ?? 10}
       value={nth}
       onChange={(e) => handleClick(Number(e.target.value))}
+      style={{ width: "11em" }}
     >
       {makeKifuList(game).map((item, i) => {
         return (

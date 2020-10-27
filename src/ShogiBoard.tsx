@@ -3,17 +3,17 @@ import * as shogi from "shogi-lib";
 import { Board } from "./Board";
 import { Hand } from "./Hand";
 import { KifuList } from "./KifuList";
-import * as _ from "lodash";
+import _ from "lodash";
 import styled from "styled-components";
 
 // よく分からない適当
 // 任意のサイズでスクロールする必要がないようにぴったり合わせるには?
 const ShogiBoardWrapper = styled.div`
   @media (min-aspect-ratio: 99/100) {
-    width: 67vh;
+    width: 65vh;
   }
   @media (max-aspect-ratio: 100/99) {
-    width: 67vw;
+    width: 65vw;
   }
 `;
 
@@ -230,6 +230,7 @@ export const ShogiBoard = () => {
             display: "flex",
             justifyContent: "center",
             flexWrap: "wrap",
+            marginBottom: 10,
           }}
         >
           <button
@@ -269,7 +270,31 @@ export const ShogiBoard = () => {
             {">|"}
           </button>
         </div>
+        <KIFLoadTextArea
+          handleClick={(kif: string) => {
+            const newGame = shogi.Game.fromKIF(kif);
+            if (newGame instanceof Error) {
+              console.error(`${newGame}`);
+              return;
+            }
+            updateGame(newGame);
+          }}
+        />
       </div>
+    </div>
+  );
+};
+
+export type KIFLoadTextAreaProps = {
+  handleClick: (kif: string) => void;
+};
+
+export const KIFLoadTextArea: React.FC<KIFLoadTextAreaProps> = ({ handleClick }) => {
+  const [kifText, setKIFText] = useState("");
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <textarea value={kifText} onChange={(e) => setKIFText(e.target.value)} />
+      <button onClick={() => handleClick(kifText)}>KIF読み込み</button>
     </div>
   );
 };
