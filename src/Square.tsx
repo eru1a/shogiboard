@@ -4,18 +4,17 @@ import { Piece } from "./Piece";
 
 export type SquareProps = {
   piece: shogi.Piece.Piece | undefined;
-  from: boolean;
-  attack: boolean;
+  from?: boolean;
+  attack?: boolean;
+  last?: boolean;
   handleClick: () => void;
 };
 
-export const Square: React.FC<SquareProps> = ({ piece, from, attack, handleClick }) => {
+export const Square: React.FC<SquareProps> = ({ piece, from, attack, last, handleClick }) => {
   let background = "#FDD775";
-  if (from) {
-    background = "lightgreen";
-  } else if (attack) {
-    background = "lightgray";
-  }
+  if (last) background = "sandybrown";
+  if (from) background = "lightgreen";
+  if (attack) background = "lightgray";
 
   return (
     <div

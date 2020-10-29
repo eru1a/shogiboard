@@ -177,6 +177,12 @@ export const ShogiBoard = () => {
     updateGame(clone);
   };
 
+  let lastToSq: shogi.Square.Square | undefined;
+  const lastMove = game.currentNode.lastMove;
+  if (lastMove.type === "md_normal" || lastMove.type === "md_drop") {
+    lastToSq = lastMove.move.to;
+  }
+
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <ShogiBoardWrapper>
@@ -202,6 +208,7 @@ export const ShogiBoard = () => {
               position={position}
               from={clickFrom?.type === "normal" ? clickFrom.from : undefined}
               attack={attack}
+              last={lastToSq}
               handleClick={handleBoardClick}
             />
           </div>

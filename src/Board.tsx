@@ -6,10 +6,11 @@ export type BoardProps = {
   position: shogi.Position;
   from?: shogi.Square.Square;
   attack?: Array<shogi.Square.Square>;
+  last?: shogi.Square.Square;
   handleClick: (square: shogi.Square.Square) => void;
 };
 
-export const Board: React.FC<BoardProps> = ({ position, from, attack, handleClick }) => {
+export const Board: React.FC<BoardProps> = ({ position, from, attack, last, handleClick }) => {
   return (
     <div
       className="board"
@@ -28,6 +29,7 @@ export const Board: React.FC<BoardProps> = ({ position, from, attack, handleClic
           piece={position.getPiece(square)}
           from={from !== undefined && from === square}
           attack={attack !== undefined && attack.some((sq) => sq === square)}
+          last={last !== undefined && last === square}
           handleClick={() => handleClick(square)}
         ></Square>
       ))}
