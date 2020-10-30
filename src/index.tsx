@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { ShogiBoard } from "./ShogiBoard";
+import { Game } from "./Game";
 
 ReactDOM.render(
   <div>
-    <ShogiBoard />
+    <Game />
   </div>,
   document.getElementById("root")
 );
