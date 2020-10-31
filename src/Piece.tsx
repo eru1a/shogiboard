@@ -1,5 +1,6 @@
 import React from "react";
 import * as shogi from "shogi-lib";
+import styled from "styled-components";
 
 import bfu from "./img/0FU.svg";
 import bgi from "./img/0GI.svg";
@@ -61,22 +62,70 @@ const pieceImgMap: Map<shogi.Piece.Piece, string> = new Map([
   ["+b", wum],
 ]);
 
+const pieceToCSA: Map<shogi.PieceType.PieceType, string> = new Map([
+  ["P", "FU"],
+  ["S", "GI"],
+  ["K", "OU"],
+  ["R", "HI"],
+  ["B", "KA"],
+  ["N", "KE"],
+  ["G", "KI"],
+  ["L", "KY"],
+  ["+S", "NG"],
+  ["+N", "NK"],
+  ["+L", "NY"],
+  ["+R", "RY"],
+  ["+P", "TO"],
+  ["+B", "UM"],
+]);
+
 export type PieceProps = {
   piece: shogi.Piece.Piece;
 };
 
+export const PieceWrapper = styled.div`
+  .FU,
+  .TO {
+    transform: scale(0.8);
+  }
+  .KY,
+  .NY {
+    transform: scale(0.84);
+  }
+  .KE,
+  .NK {
+    transform: scale(0.88);
+  }
+  .GI,
+  .NG {
+    transform: scale(0.92);
+  }
+  .KI {
+    transform: scale(0.92);
+  }
+  .KA,
+  .HI,
+  .OU,
+  .UM,
+  .RY {
+    transform: scale(0.95);
+  }
+`;
+
 export const Piece: React.FC<PieceProps> = ({ piece }) => {
+  const pt = shogi.Piece.pieceType(piece);
+  const c = shogi.Piece.color(piece);
   return (
-    <img
-      className="piece"
-      src={pieceImgMap.get(piece)}
-      alt=""
-      style={{
-        display: "block",
-        width: "100%",
-        // width: "54.54545454545454%",
-        // height: "45.45454545454545%",
-      }}
-    />
+    <PieceWrapper>
+      <img
+        className={`piece ${c} ${pieceToCSA.get(pt)}`}
+        src={pieceImgMap.get(piece)}
+        alt=""
+        style={{
+          display: "block",
+          width: "100%",
+        }}
+      />
+    </PieceWrapper>
   );
 };

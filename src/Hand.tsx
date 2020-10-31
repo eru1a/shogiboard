@@ -44,7 +44,6 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, handleClick 
         return (
           <div
             style={{
-              background,
               position: "relative",
             }}
             key={piece}
@@ -53,6 +52,7 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, handleClick 
               onClick={() => handleClick(piece)}
               style={{
                 position: "absolute",
+                background,
                 left: 0,
                 bottom: 0,
               }}

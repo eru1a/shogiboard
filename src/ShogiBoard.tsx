@@ -1,8 +1,8 @@
 import React from "react";
-import * as shogi from "shogi-lib";
 import { Board } from "./Board";
 import { Hand } from "./Hand";
 import { GameState, GameAction } from "./Game";
+import { MoveData } from "shogi-lib";
 
 export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<GameAction> }> = ({
   state,
@@ -11,11 +11,7 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
   const position = state.game.currentNode.position;
   const clickFrom = state.clickFrom;
 
-  let lastToSq: shogi.Square.Square | undefined;
-  const lastMove = state.game.currentNode.lastMove;
-  if (lastMove.type === "md_normal" || lastMove.type === "md_drop") {
-    lastToSq = lastMove.move.to;
-  }
+  const lastToSq = MoveData.move(state.game.currentNode.lastMove)?.to;
 
   return (
     <div
