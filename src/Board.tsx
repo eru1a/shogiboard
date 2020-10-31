@@ -7,10 +7,20 @@ export type BoardProps = {
   from?: shogi.Square.Square;
   attack?: Array<shogi.Square.Square>;
   last?: shogi.Square.Square;
+  reverse?: boolean;
   handleClick: (square: shogi.Square.Square) => void;
 };
 
-export const Board: React.FC<BoardProps> = ({ position, from, attack, last, handleClick }) => {
+export const Board: React.FC<BoardProps> = ({
+  position,
+  from,
+  attack,
+  last,
+  reverse,
+  handleClick,
+}) => {
+  const squares = shogi.Square.squares.concat();
+  if (reverse) squares.reverse();
   return (
     <div
       className="board"
@@ -23,7 +33,7 @@ export const Board: React.FC<BoardProps> = ({ position, from, attack, last, hand
         userSelect: "none",
       }}
     >
-      {shogi.Square.squares.map((square, i) => {
+      {squares.map((square, i) => {
         const { file, rank } = shogi.Square.toFileRank(square);
         return (
           <div key={i} style={{ position: "relative" }}>
@@ -32,6 +42,7 @@ export const Board: React.FC<BoardProps> = ({ position, from, attack, last, hand
               from={from !== undefined && from === square}
               attack={attack !== undefined && attack.some((sq) => sq === square)}
               last={last !== undefined && last === square}
+              reverse={reverse}
               handleClick={() => handleClick(square)}
             ></Square>
             {rank === "a" && (
@@ -43,8 +54,10 @@ export const Board: React.FC<BoardProps> = ({ position, from, attack, last, hand
                   transform: "scale(0.7)",
                   fontWeight: "bold",
                   color: "#888",
-                  left: 0,
-                  top: 0,
+                  left: reverse ? undefined : -3,
+                  top: reverse ? undefined : -3,
+                  right: reverse ? -3 : undefined,
+                  bottom: reverse ? -3 : undefined,
                 }}
               >
                 {shogi.File.toKIF(file)}
@@ -59,8 +72,10 @@ export const Board: React.FC<BoardProps> = ({ position, from, attack, last, hand
                   transform: "scale(0.7)",
                   fontWeight: "bold",
                   color: "#888",
-                  right: 0,
-                  top: 0,
+                  right: reverse ? undefined : -3,
+                  top: reverse ? undefined : -3,
+                  left: reverse ? -3 : undefined,
+                  bottom: reverse ? -3 : undefined,
                 }}
               >
                 {shogi.Rank.toKIF(rank)}

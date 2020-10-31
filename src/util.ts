@@ -33,3 +33,9 @@ export function pieceToKIF(piece: shogi.Piece.Piece) {
     case "+r": return "竜";
   }
 }
+
+export const reversePiece = (piece: shogi.Piece.Piece) => {
+  const pt = shogi.Piece.pieceType(piece);
+  const c = shogi.Piece.color(piece);
+  return shogi.Piece.make(pt, shogi.Color.inv(c));
+};

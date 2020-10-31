@@ -1,16 +1,20 @@
 import React from "react";
 import * as shogi from "shogi-lib";
 import { Piece } from "./Piece";
+import { reversePiece } from "./util";
 
 export type HandProps = {
   position: shogi.Position;
   color: shogi.Color.Color;
   from?: shogi.Piece.Piece;
+  reverse?: boolean;
   handleClick: (piece: shogi.Piece.Piece) => void;
 };
 
-export const Hand: React.SFC<HandProps> = ({ position, color, from, handleClick }) => {
+export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, handleClick }) => {
   const pieces = shogi.Piece.handPieces.filter((piece) => shogi.Piece.color(piece) === color);
+  // reverseがtrueだったら逆のcolorにする
+  const color2 = reverse ? shogi.Color.inv(color) : color;
 
   return (
     <div
@@ -57,7 +61,7 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, handleClick 
                 bottom: 0,
               }}
             >
-              <Piece piece={piece} />
+              <Piece piece={reverse ? reversePiece(piece) : piece} />
               {n > 1 && (
                 <div
                   style={{
@@ -65,8 +69,8 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, handleClick 
                     color: "red",
                     fontWeight: "bold",
                     fontSize: 7,
-                    top: color === "b" ? 0 : undefined,
-                    bottom: color === "w" ? 0 : undefined,
+                    top: color2 === "b" ? 0 : undefined,
+                    bottom: color2 === "w" ? 0 : undefined,
                     right: 0,
                   }}
                 >

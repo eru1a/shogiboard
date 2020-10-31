@@ -16,10 +16,11 @@ export type GameState = {
   game: shogi.Game;
   clickFrom: ClickFrom;
   attackSquares: Array<shogi.Square.Square>;
+  reverse: boolean;
 };
 
-export const initialGameState = () => {
-  return { game: new shogi.Game(), clickFrom: { type: "none" }, attackSquares: [] };
+export const initialGameState = (): GameState => {
+  return { game: new shogi.Game(), clickFrom: { type: "none" }, attackSquares: [], reverse: false };
 };
 
 export type GameAction =
@@ -30,7 +31,8 @@ export type GameAction =
   | { type: "gotoFirst" }
   | { type: "gotoLast" }
   | { type: "gotoNth"; nth: number }
-  | { type: "loadKIF"; kif: string };
+  | { type: "loadKIF"; kif: string }
+  | { type: "reverse" };
 
 export const gameReducer = (state: GameState, action: GameAction): GameState => {
   switch (action.type) {
@@ -44,10 +46,10 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
           );
           // 非合法手
           if (moves.length === 0) {
-            return { game: state.game, clickFrom: { type: "none" }, attackSquares: [] };
+            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
           }
           return {
-            game: state.game,
+            ...state,
             clickFrom: { type: "normal", from: action.square },
             attackSquares: moves.map((move) => move.to),
           };
@@ -60,7 +62,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 
           // 非合法手
           if (moves.length === 0) {
-            return { game: state.game, clickFrom: { type: "none" }, attackSquares: [] };
+            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
           }
 
           let promotion = false;
@@ -79,6 +81,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
           const err = clone.move(move);
           if (err instanceof Error) console.error(err);
           return {
+            ...state,
             game: clone,
             clickFrom: { type: "none" },
             attackSquares: [],
@@ -90,11 +93,11 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 
           // クリックしたのが手番側の駒でなければ非合法手
           if (shogi.Piece.color(piece) !== state.game.currentNode.position.turn) {
-            return { game: state.game, clickFrom: { type: "none" }, attackSquares: [] };
+            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
           }
           // 非合法手
           if (!legalMoves.some((move) => move.type === "drop" && move.pieceType === pieceType)) {
-            return { game: state.game, clickFrom: { type: "none" }, attackSquares: [] };
+            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
           }
 
           const move: shogi.Move.Move = { type: "drop", pieceType, to: action.square };
@@ -102,6 +105,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
           const err = clone.move(move);
           if (err instanceof Error) console.error(err);
           return {
+            ...state,
             game: clone,
             clickFrom: { type: "none" },
             attackSquares: [],
@@ -110,12 +114,12 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         default:
           // eslintが警告してくるので...
           console.error("unreachable");
-          return { game: state.game, clickFrom: { type: "none" }, attackSquares: [] };
+          return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
       }
     }
     case "clickHand": {
       if (state.clickFrom.type !== "none") {
-        return { game: state.game, clickFrom: { type: "none" }, attackSquares: [] };
+        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
       }
       const legalMoves = state.game.currentNode.position.legalMoves();
       const moves = legalMoves.filter(
@@ -123,13 +127,13 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       );
       if (moves.length === 0) {
         return {
-          game: state.game,
+          ...state,
           clickFrom: { type: "none" },
           attackSquares: [],
         };
       }
       return {
-        game: state.game,
+        ...state,
         clickFrom: { type: "drop", piece: action.piece },
         attackSquares: moves.map((move) => move.to),
       };
@@ -138,6 +142,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const clone = _.cloneDeep(state.game);
       clone.next();
       return {
+        ...state,
         game: clone,
         clickFrom: { type: "none" },
         attackSquares: [],
@@ -147,6 +152,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const clone = _.cloneDeep(state.game);
       clone.prev();
       return {
+        ...state,
         game: clone,
         clickFrom: { type: "none" },
         attackSquares: [],
@@ -156,6 +162,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const clone = _.cloneDeep(state.game);
       clone.goToFirst();
       return {
+        ...state,
         game: clone,
         clickFrom: { type: "none" },
         attackSquares: [],
@@ -165,6 +172,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const clone = _.cloneDeep(state.game);
       clone.goToLast();
       return {
+        ...state,
         game: clone,
         clickFrom: { type: "none" },
         attackSquares: [],
@@ -175,6 +183,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const err = clone.goToNth(action.nth);
       if (err instanceof Error) console.error(err);
       return {
+        ...state,
         game: clone,
         clickFrom: { type: "none" },
         attackSquares: [],
@@ -185,17 +194,20 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       if (game2 instanceof Error) {
         console.error(game2);
         return {
-          game: state.game,
+          ...state,
           clickFrom: { type: "none" },
           attackSquares: [],
         };
       }
       return {
+        ...state,
         game: game2,
         clickFrom: { type: "none" },
         attackSquares: [],
       };
     }
+    case "reverse":
+      return { ...state, reverse: !state.reverse };
   }
 };
 
@@ -212,11 +224,7 @@ const ShogiBoardWrapper = styled.div`
 `;
 
 export const Game = () => {
-  const [state, dispatch] = useReducer(gameReducer, {
-    game: new shogi.Game(),
-    clickFrom: { type: "none" },
-    attackSquares: [],
-  });
+  const [state, dispatch] = useReducer(gameReducer, initialGameState());
 
   const calcNth = (game: shogi.Game) => {
     let i = 0;
@@ -276,6 +284,7 @@ export const GotoButtons: React.FC<{ dispatch: React.Dispatch<GameAction> }> = (
       <button onClick={() => dispatch({ type: "gotoPrev" })}>{"<"}</button>
       <button onClick={() => dispatch({ type: "gotoNext" })}>{">"}</button>
       <button onClick={() => dispatch({ type: "gotoLast" })}>{">|"}</button>
+      <button onClick={() => dispatch({ type: "reverse" })}>↑↓</button>
     </div>
   );
 };

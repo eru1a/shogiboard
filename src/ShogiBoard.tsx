@@ -13,6 +13,41 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
 
   const lastToSq = MoveData.move(state.game.currentNode.lastMove)?.to;
 
+  const bhand = (
+    <div>
+      <Hand
+        position={position}
+        color={"b"}
+        from={clickFrom.type === "drop" ? clickFrom.piece : undefined}
+        reverse={state.reverse}
+        handleClick={(piece) => dispatch({ type: "clickHand", piece })}
+      />
+    </div>
+  );
+  const whand = (
+    <div>
+      <Hand
+        position={position}
+        color={"w"}
+        from={clickFrom.type === "drop" ? clickFrom.piece : undefined}
+        reverse={state.reverse}
+        handleClick={(piece) => dispatch({ type: "clickHand", piece })}
+      />
+    </div>
+  );
+  const board = (
+    <div className="board" style={{ marginTop: 5, marginBottom: 5 }}>
+      <Board
+        position={position}
+        from={clickFrom.type === "normal" ? clickFrom.from : undefined}
+        attack={state.attackSquares}
+        last={lastToSq}
+        reverse={state.reverse}
+        handleClick={(square) => dispatch({ type: "clickBoard", square })}
+      />
+    </div>
+  );
+
   return (
     <div
       className="shogiboard"
@@ -22,31 +57,9 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
         userSelect: "none",
       }}
     >
-      <div>
-        <Hand
-          position={position}
-          color={"w"}
-          from={clickFrom.type === "drop" ? clickFrom.piece : undefined}
-          handleClick={(piece) => dispatch({ type: "clickHand", piece })}
-        />
-      </div>
-      <div className="board" style={{ marginTop: 5, marginBottom: 5 }}>
-        <Board
-          position={position}
-          from={clickFrom.type === "normal" ? clickFrom.from : undefined}
-          attack={state.attackSquares}
-          last={lastToSq}
-          handleClick={(square) => dispatch({ type: "clickBoard", square })}
-        />
-      </div>
-      <div>
-        <Hand
-          position={position}
-          color={"b"}
-          from={clickFrom.type === "drop" ? clickFrom.piece : undefined}
-          handleClick={(piece) => dispatch({ type: "clickHand", piece })}
-        />
-      </div>
+      {state.reverse ? bhand : whand}
+      {board}
+      {state.reverse ? whand : bhand}
     </div>
   );
 };

@@ -1,16 +1,25 @@
 import React from "react";
 import * as shogi from "shogi-lib";
 import { Piece } from "./Piece";
+import { reversePiece } from "./util";
 
 export type SquareProps = {
   piece: shogi.Piece.Piece | undefined;
   from?: boolean;
   attack?: boolean;
   last?: boolean;
+  reverse?: boolean;
   handleClick: () => void;
 };
 
-export const Square: React.FC<SquareProps> = ({ piece, from, attack, last, handleClick }) => {
+export const Square: React.FC<SquareProps> = ({
+  piece,
+  from,
+  attack,
+  last,
+  reverse,
+  handleClick,
+}) => {
   let background = "#FDD775";
   if (last) background = "sandybrown";
   if (from) background = "lightgreen";
@@ -32,8 +41,15 @@ export const Square: React.FC<SquareProps> = ({ piece, from, attack, last, handl
       onClick={handleClick}
     >
       {piece !== undefined ? (
-        <div style={{ position: "absolute", width: "100%", left: 0, bottom: 0 }}>
-          <Piece piece={piece} />
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            left: 0,
+            bottom: 0,
+          }}
+        >
+          <Piece piece={reverse ? reversePiece(piece) : piece} />
         </div>
       ) : undefined}
     </div>
