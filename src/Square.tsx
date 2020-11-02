@@ -34,24 +34,21 @@ export const Square: React.FC<SquareProps> = ({
         border: "1px solid #666",
         boxSizing: "border-box",
         position: "relative",
-        // 駒1つが52x60なので
-        // 60/52*100 => 115.38...
-        paddingTop: "115.38461538461537%",
+        // 駒1つが52x60
+        paddingTop: `${(60 / 52) * 100}%`,
       }}
       onClick={handleClick}
     >
-      {piece !== undefined ? (
-        <div
-          style={{
-            position: "absolute",
-            width: "100%",
-            left: 0,
-            bottom: 0,
-          }}
-        >
-          <Piece piece={reverse ? reversePiece(piece) : piece} />
-        </div>
-      ) : undefined}
+      <div
+        style={{
+          position: "absolute",
+          width: "100%",
+          left: 0,
+          bottom: 0,
+        }}
+      >
+        {piece && <Piece piece={reverse ? reversePiece(piece) : piece} />}
+      </div>
     </div>
   );
 };

@@ -214,13 +214,15 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 // よく分からない適当
 // スクロールする必要がないようにぴったり合わせるには?
 const ShogiBoardWrapper = styled.div`
-  @media (min-aspect-ratio: 686/1000) {
+  margin: auto;
+
+  @media (min-aspect-ratio: 99/100) {
     width: 66vh;
   }
 
-  @media (max-aspect-ratio: 686/1000) {
-    width: 66vw;
-  }
+  // @media (max-aspect-ratio: 99/100) {
+  //   width: 66vw;
+  // }
 `;
 
 export const Game = () => {
@@ -238,8 +240,15 @@ export const Game = () => {
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center" }}>
-      <div style={{ marginRight: 10 }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "3fr 1fr",
+        gridColumnGap: 5,
+        boxSizing: "border-box",
+      }}
+    >
+      <div>
         <ShogiBoardWrapper>
           <ShogiBoard state={state} dispatch={dispatch} />
         </ShogiBoardWrapper>
@@ -250,14 +259,14 @@ export const Game = () => {
           flexDirection: "column",
         }}
       >
-        <div style={{ marginLeft: "auto", marginRight: "auto", marginBottom: 10 }}>
+        <div style={{ marginLeft: "auto", marginRight: "auto" }}>
           <KifuList
             game={state.game}
             nth={calcNth(state.game)}
             handleClick={(nth) => dispatch({ type: "gotoNth", nth })}
           />
         </div>
-        <div style={{ marginBottom: 10 }}>
+        <div>
           <GotoButtons dispatch={dispatch} />
         </div>
         <KIFLoadTextArea

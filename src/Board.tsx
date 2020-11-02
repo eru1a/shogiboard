@@ -31,6 +31,7 @@ export const Board: React.FC<BoardProps> = ({
         gridTemplateColumns: "repeat(9, 1fr)",
         gridTemplateRows: "repeat(9, 1fr)",
         userSelect: "none",
+        boxSizing: "border-box",
       }}
     >
       {squares.map((square, i) => {

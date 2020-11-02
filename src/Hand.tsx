@@ -24,13 +24,12 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, han
         border: "1px solid #666",
         boxSizing: "border-box",
         display: "grid",
-        gridTemplateRows: "1fr",
         gridTemplateColumns: "repeat(9, 1fr)",
         userSelect: "none",
         position: "relative",
         // 駒1つが52x60なので駒台は52*9x60
         // => 60/(52*9)*100 = 12.82...
-        paddingTop: "12.82051282051282%",
+        paddingTop: `${(60 / (52 * 9)) * 100}%`,
       }}
     >
       {pieces.map((piece) => {
@@ -46,12 +45,7 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, han
           background = "lightgreen";
         }
         return (
-          <div
-            style={{
-              position: "relative",
-            }}
-            key={piece}
-          >
+          <div style={{ position: "relative" }} key={piece}>
             <div
               onClick={() => handleClick(piece)}
               style={{

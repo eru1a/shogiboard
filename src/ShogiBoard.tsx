@@ -36,7 +36,7 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
     </div>
   );
   const board = (
-    <div className="board" style={{ marginTop: 5, marginBottom: 5 }}>
+    <div className="board">
       <Board
         position={position}
         from={clickFrom.type === "normal" ? clickFrom.from : undefined}
@@ -50,11 +50,13 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
 
   return (
     <div
-      className="shogiboard"
+      id="shogiboard"
       style={{
-        display: "flex",
-        flexDirection: "column",
+        display: "grid",
+        gridTemplateRows: "1fr 9fr 1fr",
         userSelect: "none",
+        gridRowGap: 5,
+        boxSizing: "border-box",
       }}
     >
       {state.reverse ? bhand : whand}
