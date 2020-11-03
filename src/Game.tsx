@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { KifuList } from "./KifuList";
 import { ShogiBoard } from "./ShogiBoard";
 import { KIFLoadTextArea } from "./KIFLoadTextArea";
+import { moveDataToKIF } from "./util";
 
 /** 合法手の中でfrom(駒を打つ場合はpiece)となり得るマスをクリックした状態 */
 export type ClickFrom =
@@ -30,7 +31,7 @@ export type GameAction =
   | { type: "gotoPrev" }
   | { type: "gotoFirst" }
   | { type: "gotoLast" }
-  | { type: "gotoNth"; nth: number }
+  | { type: "gotoUID"; uid: number }
   | { type: "loadKIF"; kif: string }
   | { type: "reverse" };
 
@@ -160,7 +161,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     }
     case "gotoFirst": {
       const clone = _.cloneDeep(state.game);
-      clone.goToFirst();
+      clone.gotoFirst();
       return {
         ...state,
         game: clone,
@@ -170,7 +171,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     }
     case "gotoLast": {
       const clone = _.cloneDeep(state.game);
-      clone.goToLast();
+      clone.gotoLast();
       return {
         ...state,
         game: clone,
@@ -178,9 +179,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         attackSquares: [],
       };
     }
-    case "gotoNth": {
+    case "gotoUID": {
       const clone = _.cloneDeep(state.game);
-      const err = clone.goToNth(action.nth);
+      const err = clone.gotoUID(action.uid);
       if (err instanceof Error) console.error(err);
       return {
         ...state,
@@ -228,17 +229,6 @@ const ShogiBoardWrapper = styled.div`
 export const Game = () => {
   const [state, dispatch] = useReducer(gameReducer, initialGameState());
 
-  const calcNth = (game: shogi.Game) => {
-    let i = 0;
-    let node: shogi.GameNode | undefined = game.rootNode;
-    while (node !== undefined) {
-      if (node === game.currentNode) break;
-      node = node.next;
-      i++;
-    }
-    return i;
-  };
-
   return (
     <div
       style={{
@@ -257,14 +247,35 @@ export const Game = () => {
         style={{
           display: "flex",
           flexDirection: "column",
+          marginLeft: "auto",
+          marginRight: "auto",
         }}
       >
-        <div style={{ marginLeft: "auto", marginRight: "auto" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
           <KifuList
             game={state.game}
-            nth={calcNth(state.game)}
-            handleClick={(nth) => dispatch({ type: "gotoNth", nth })}
+            uid={state.game.currentNode.uid}
+            handleClick={(uid) => dispatch({ type: "gotoUID", uid })}
           />
+          <select
+            value={state.game.currentNode.uid}
+            disabled={state.game.currentNode.branch.length === 0}
+            onChange={(e) => dispatch({ type: "gotoUID", uid: Number(e.target.value) })}
+          >
+            <option>変化{state.game.currentNode.branch.length}手</option>
+            {state.game.currentNode.branch.map((node) => (
+              <option key={node.uid} value={node.uid}>
+                {moveDataToKIF(node.lastMove)}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <GotoButtons dispatch={dispatch} />

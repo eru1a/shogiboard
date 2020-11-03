@@ -11,7 +11,7 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
   const position = state.game.currentNode.position;
   const clickFrom = state.clickFrom;
 
-  const lastToSq = MoveData.move(state.game.currentNode.lastMove)?.to;
+  const lastToSq = MoveData.getMove(state.game.currentNode.lastMove)?.to;
 
   const bhand = (
     <div>
