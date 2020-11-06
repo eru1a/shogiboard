@@ -24,9 +24,16 @@ export const initialGameState = (): GameState => {
   return { game: new shogi.Game(), clickFrom: { type: "none" }, attackSquares: [], reverse: false };
 };
 
+export type DragItem =
+  | { type: "board"; from: shogi.Square.Square }
+  | { type: "hand"; piece: shogi.Piece.Piece };
+
 export type GameAction =
   | { type: "clickBoard"; square: shogi.Square.Square }
   | { type: "clickHand"; piece: shogi.Piece.Piece }
+  // TODO: "dragBoard"、"dragHand"、"drop"に分ける
+  | { type: "dragNormalMove"; from: shogi.Square.Square; to: shogi.Square.Square }
+  | { type: "dragDropMove"; piece: shogi.Piece.Piece; to: shogi.Square.Square }
   | { type: "gotoNext" }
   | { type: "gotoPrev" }
   | { type: "gotoFirst" }
@@ -137,6 +144,64 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         ...state,
         clickFrom: { type: "drop", piece: action.piece },
         attackSquares: moves.map((move) => move.to),
+      };
+    }
+    case "dragNormalMove": {
+      // TODO: 上のクリック版とほとんど同じなのでまとめる
+      const legalMoves = state.game.currentNode.position.legalMoves();
+      const moves = legalMoves.filter(
+        (move) => move.type === "normal" && move.from === action.from && move.to === action.to
+      );
+
+      // 非合法手
+      if (moves.length === 0) {
+        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      }
+
+      let promotion = false;
+      if (moves.length === 1) {
+        // 不成か強制成りかどちらか
+        promotion = moves[0].type === "normal" && moves[0].promotion;
+      } else if (moves.length === 2) {
+        // 成か不成か選択する
+        promotion = window.confirm("promote?");
+      } else {
+        // ???
+        console.error("moves length should be 1 or 2");
+      }
+      const move: shogi.Move.Move = { type: "normal", from: action.from, to: action.to, promotion };
+      const clone = _.cloneDeep(state.game);
+      const err = clone.move(move);
+      if (err instanceof Error) console.error(err);
+      return {
+        ...state,
+        game: clone,
+        clickFrom: { type: "none" },
+        attackSquares: [],
+      };
+    }
+    case "dragDropMove": {
+      const legalMoves = state.game.currentNode.position.legalMoves();
+      const pieceType = shogi.Piece.pieceType(action.piece);
+
+      // クリックしたのが手番側の駒でなければ非合法手
+      if (shogi.Piece.color(action.piece) !== state.game.currentNode.position.turn) {
+        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      }
+      // 非合法手
+      if (!legalMoves.some((move) => move.type === "drop" && move.pieceType === pieceType)) {
+        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      }
+
+      const move: shogi.Move.Move = { type: "drop", pieceType, to: action.to };
+      const clone = _.cloneDeep(state.game);
+      const err = clone.move(move);
+      if (err instanceof Error) console.error(err);
+      return {
+        ...state,
+        game: clone,
+        clickFrom: { type: "none" },
+        attackSquares: [],
       };
     }
     case "gotoNext": {

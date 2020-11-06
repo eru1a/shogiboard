@@ -9,6 +9,8 @@ export type BoardProps = {
   last?: shogi.Square.Square;
   reverse?: boolean;
   handleClick: (square: shogi.Square.Square) => void;
+  handleBoardDrop: (from: shogi.Square.Square, to: shogi.Square.Square) => void;
+  handleHandDrop: (piece: shogi.Piece.Piece, to: shogi.Square.Square) => void;
 };
 
 export const Board: React.FC<BoardProps> = ({
@@ -18,6 +20,8 @@ export const Board: React.FC<BoardProps> = ({
   last,
   reverse,
   handleClick,
+  handleBoardDrop,
+  handleHandDrop,
 }) => {
   const squares = shogi.Square.squares.concat();
   if (reverse) squares.reverse();
@@ -40,11 +44,14 @@ export const Board: React.FC<BoardProps> = ({
           <div key={i} style={{ position: "relative" }}>
             <Square
               piece={position.getPiece(square)}
+              square={square}
               from={from !== undefined && from === square}
               attack={attack !== undefined && attack.some((sq) => sq === square)}
               last={last !== undefined && last === square}
               reverse={reverse}
               handleClick={() => handleClick(square)}
+              handleBoardDrop={handleBoardDrop}
+              handleHandDrop={handleHandDrop}
             ></Square>
             {rank === "a" && (
               <div

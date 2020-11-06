@@ -1,4 +1,5 @@
 import React from "react";
+import { useDrag } from "react-dnd";
 import * as shogi from "shogi-lib";
 import { Piece } from "./Piece";
 import { reversePiece } from "./util";
@@ -46,35 +47,72 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, han
         }
         return (
           <div style={{ position: "relative" }} key={piece}>
-            <div
-              onClick={() => handleClick(piece)}
-              style={{
-                position: "absolute",
-                background,
-                left: 0,
-                bottom: 0,
-              }}
-            >
-              <Piece piece={reverse ? reversePiece(piece) : piece} />
-              {n > 1 && (
-                <div
-                  style={{
-                    position: "absolute",
-                    color: "red",
-                    fontWeight: "bold",
-                    fontSize: 7,
-                    top: color2 === "b" ? 0 : undefined,
-                    bottom: color2 === "w" ? 0 : undefined,
-                    right: 0,
-                  }}
-                >
-                  {n}
-                </div>
-              )}
-            </div>
+            <HandPiece
+              piece={piece}
+              displayPiece={reverse ? reversePiece(piece) : piece}
+              n={n}
+              color={color2}
+              background={background}
+              handleClick={() => handleClick(piece)}
+            />
           </div>
         );
       })}
+    </div>
+  );
+};
+
+export type HandPieceProps = {
+  piece: shogi.Piece.Piece;
+  displayPiece: shogi.Piece.Piece;
+  n: number;
+  color: string;
+  background: string | undefined;
+  handleClick: () => void;
+};
+
+export const HandPiece: React.FC<HandPieceProps> = ({
+  piece,
+  displayPiece,
+  n,
+  color,
+  background,
+  handleClick,
+}) => {
+  const [, drag] = useDrag({
+    item: {
+      type: "hand",
+      piece: piece,
+    },
+  });
+
+  return (
+    <div
+      ref={drag}
+      onClick={handleClick}
+      style={{
+        position: "absolute",
+        background,
+        left: 0,
+        bottom: 0,
+      }}
+    >
+      <Piece piece={displayPiece} />
+      {n > 1 && (
+        <div
+          style={{
+            position: "absolute",
+            color: "red",
+            fontWeight: "bold",
+            fontSize: 7,
+            top: color === "b" ? 0 : undefined,
+            bottom: color === "w" ? 0 : undefined,
+            right: 0,
+          }}
+        >
+          {n}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,25 +1,58 @@
-import React from "react";
+import React, { useRef } from "react";
+import { useDrag, useDrop } from "react-dnd";
+import { DragItem } from "./Game";
 import * as shogi from "shogi-lib";
 import { Piece } from "./Piece";
 import { reversePiece } from "./util";
 
 export type SquareProps = {
   piece: shogi.Piece.Piece | undefined;
+  // TODO: squareを渡さないようにする
+  square: shogi.Square.Square;
   from?: boolean;
   attack?: boolean;
   last?: boolean;
   reverse?: boolean;
   handleClick: () => void;
+  handleBoardDrop: (from: shogi.Square.Square, to: shogi.Square.Square) => void;
+  handleHandDrop: (piece: shogi.Piece.Piece, to: shogi.Square.Square) => void;
 };
 
 export const Square: React.FC<SquareProps> = ({
   piece,
+  square,
   from,
   attack,
   last,
   reverse,
   handleClick,
+  handleBoardDrop,
+  handleHandDrop,
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [, drag] = useDrag({
+    canDrag: () => piece !== undefined,
+    item: {
+      type: "board",
+      from: square,
+    },
+  });
+  const [, drop] = useDrop({
+    accept: ["board", "hand"],
+    drop(item: DragItem) {
+      if (!ref.current) return;
+      switch (item.type) {
+        case "board":
+          handleBoardDrop(item.from, square);
+          break;
+        case "hand":
+          handleHandDrop(item.piece, square);
+          break;
+      }
+    },
+  });
+  drag(drop(ref));
+
   let background = "#FDD775";
   if (last) background = "sandybrown";
   if (from) background = "lightgreen";
@@ -27,6 +60,7 @@ export const Square: React.FC<SquareProps> = ({
 
   return (
     <div
+      ref={ref}
       className="square"
       style={{
         background,
