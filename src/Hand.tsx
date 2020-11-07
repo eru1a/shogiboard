@@ -46,7 +46,7 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, han
           background = "lightgreen";
         }
         return (
-          <div style={{ position: "relative" }} key={piece}>
+          <div style={{ position: "relative", width: "100%" }} key={piece}>
             <HandPiece
               piece={piece}
               displayPiece={reverse ? reversePiece(piece) : piece}
@@ -95,6 +95,7 @@ export const HandPiece: React.FC<HandPieceProps> = ({
         background,
         left: 0,
         bottom: 0,
+        width: "100%",
       }}
     >
       <Piece piece={displayPiece} />

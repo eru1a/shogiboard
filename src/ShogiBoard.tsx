@@ -56,6 +56,7 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
 
   return (
     // TODO: プレビューのカスタマイズ
+    // TODO: Handの大きさは合ってるけど駒が小さい
     <DndProvider backend={isMobile().any ? TouchBackend : HTML5Backend}>
       <div
         id="shogiboard"

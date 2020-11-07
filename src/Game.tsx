@@ -43,6 +43,72 @@ export type GameAction =
   | { type: "reverse" };
 
 export const gameReducer = (state: GameState, action: GameAction): GameState => {
+  const normalMove = (from: shogi.Square.Square, to: shogi.Square.Square): GameState => {
+    const moves = state.game.currentNode.position
+      .legalMoves()
+      .filter((move) => move.type === "normal" && move.from === from && move.to === to);
+
+    // 非合法手
+    if (moves.length === 0) {
+      return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+    }
+
+    let promotion = false;
+    if (moves.length === 1) {
+      // 不成か強制成りかどちらか
+      promotion = moves[0].type === "normal" && moves[0].promotion;
+    } else if (moves.length === 2) {
+      // 成か不成か選択する
+      promotion = window.confirm("promote?");
+    } else {
+      // ???
+      console.error("moves length should be 1 or 2");
+    }
+    const move: shogi.Move.Move = {
+      type: "normal",
+      from: from,
+      to: to,
+      promotion,
+    };
+    const clone = _.cloneDeep(state.game);
+    const err = clone.move(move);
+    if (err instanceof Error) console.error(err);
+    return {
+      ...state,
+      game: clone,
+      clickFrom: { type: "none" },
+      attackSquares: [],
+    };
+  };
+
+  const dropMove = (piece: shogi.Piece.Piece, to: shogi.Square.Square): GameState => {
+    const pieceType = shogi.Piece.pieceType(piece);
+
+    // クリックしたのが手番側の駒でなければ非合法手
+    if (shogi.Piece.color(piece) !== state.game.currentNode.position.turn) {
+      return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+    }
+    // 非合法手
+    if (
+      !state.game.currentNode.position
+        .legalMoves()
+        .some((move) => move.type === "drop" && move.pieceType === pieceType)
+    ) {
+      return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+    }
+
+    const move: shogi.Move.Move = { type: "drop", pieceType, to: to };
+    const clone = _.cloneDeep(state.game);
+    const err = clone.move(move);
+    if (err instanceof Error) console.error(err);
+    return {
+      ...state,
+      game: clone,
+      clickFrom: { type: "none" },
+      attackSquares: [],
+    };
+  };
+
   switch (action.type) {
     case "clickBoard": {
       const legalMoves = state.game.currentNode.position.legalMoves();
@@ -62,63 +128,10 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
             attackSquares: moves.map((move) => move.to),
           };
         }
-        case "normal": {
-          const from = state.clickFrom.from;
-          const moves = legalMoves.filter(
-            (move) => move.type === "normal" && move.from === from && move.to === action.square
-          );
-
-          // 非合法手
-          if (moves.length === 0) {
-            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
-          }
-
-          let promotion = false;
-          if (moves.length === 1) {
-            // 不成か強制成りかどちらか
-            promotion = moves[0].type === "normal" && moves[0].promotion;
-          } else if (moves.length === 2) {
-            // 成か不成か選択する
-            promotion = window.confirm("promote?");
-          } else {
-            // ???
-            console.error("moves length should be 1 or 2");
-          }
-          const move: shogi.Move.Move = { type: "normal", from, to: action.square, promotion };
-          const clone = _.cloneDeep(state.game);
-          const err = clone.move(move);
-          if (err instanceof Error) console.error(err);
-          return {
-            ...state,
-            game: clone,
-            clickFrom: { type: "none" },
-            attackSquares: [],
-          };
-        }
-        case "drop": {
-          const piece = state.clickFrom.piece;
-          const pieceType = shogi.Piece.pieceType(piece);
-
-          // クリックしたのが手番側の駒でなければ非合法手
-          if (shogi.Piece.color(piece) !== state.game.currentNode.position.turn) {
-            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
-          }
-          // 非合法手
-          if (!legalMoves.some((move) => move.type === "drop" && move.pieceType === pieceType)) {
-            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
-          }
-
-          const move: shogi.Move.Move = { type: "drop", pieceType, to: action.square };
-          const clone = _.cloneDeep(state.game);
-          const err = clone.move(move);
-          if (err instanceof Error) console.error(err);
-          return {
-            ...state,
-            game: clone,
-            clickFrom: { type: "none" },
-            attackSquares: [],
-          };
-        }
+        case "normal":
+          return normalMove(state.clickFrom.from, action.square);
+        case "drop":
+          return dropMove(state.clickFrom.piece, action.square);
         default:
           // eslintが警告してくるので...
           console.error("unreachable");
@@ -146,64 +159,10 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         attackSquares: moves.map((move) => move.to),
       };
     }
-    case "dragNormalMove": {
-      // TODO: 上のクリック版とほとんど同じなのでまとめる
-      const legalMoves = state.game.currentNode.position.legalMoves();
-      const moves = legalMoves.filter(
-        (move) => move.type === "normal" && move.from === action.from && move.to === action.to
-      );
-
-      // 非合法手
-      if (moves.length === 0) {
-        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
-      }
-
-      let promotion = false;
-      if (moves.length === 1) {
-        // 不成か強制成りかどちらか
-        promotion = moves[0].type === "normal" && moves[0].promotion;
-      } else if (moves.length === 2) {
-        // 成か不成か選択する
-        promotion = window.confirm("promote?");
-      } else {
-        // ???
-        console.error("moves length should be 1 or 2");
-      }
-      const move: shogi.Move.Move = { type: "normal", from: action.from, to: action.to, promotion };
-      const clone = _.cloneDeep(state.game);
-      const err = clone.move(move);
-      if (err instanceof Error) console.error(err);
-      return {
-        ...state,
-        game: clone,
-        clickFrom: { type: "none" },
-        attackSquares: [],
-      };
-    }
-    case "dragDropMove": {
-      const legalMoves = state.game.currentNode.position.legalMoves();
-      const pieceType = shogi.Piece.pieceType(action.piece);
-
-      // クリックしたのが手番側の駒でなければ非合法手
-      if (shogi.Piece.color(action.piece) !== state.game.currentNode.position.turn) {
-        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
-      }
-      // 非合法手
-      if (!legalMoves.some((move) => move.type === "drop" && move.pieceType === pieceType)) {
-        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
-      }
-
-      const move: shogi.Move.Move = { type: "drop", pieceType, to: action.to };
-      const clone = _.cloneDeep(state.game);
-      const err = clone.move(move);
-      if (err instanceof Error) console.error(err);
-      return {
-        ...state,
-        game: clone,
-        clickFrom: { type: "none" },
-        attackSquares: [],
-      };
-    }
+    case "dragNormalMove":
+      return normalMove(action.from, action.to);
+    case "dragDropMove":
+      return dropMove(action.piece, action.to);
     case "gotoNext": {
       const clone = _.cloneDeep(state.game);
       clone.next();
@@ -280,7 +239,8 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 // よく分からない適当
 // スクロールする必要がないようにぴったり合わせるには?
 const ShogiBoardWrapper = styled.div`
-  margin: auto;
+  width: 100%;
+  margin-right: 5px;
 
   @media (min-aspect-ratio: 99/100) {
     width: 66vh;
@@ -297,23 +257,18 @@ export const Game = () => {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "3fr 1fr",
-        gridColumnGap: 5,
+        display: "flex",
+        justifyContent: "center",
         boxSizing: "border-box",
       }}
     >
-      <div>
-        <ShogiBoardWrapper>
-          <ShogiBoard state={state} dispatch={dispatch} />
-        </ShogiBoardWrapper>
-      </div>
+      <ShogiBoardWrapper>
+        <ShogiBoard state={state} dispatch={dispatch} />
+      </ShogiBoardWrapper>
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          marginLeft: "auto",
-          marginRight: "auto",
         }}
       >
         <div
@@ -342,9 +297,7 @@ export const Game = () => {
             ))}
           </select>
         </div>
-        <div>
-          <GotoButtons dispatch={dispatch} />
-        </div>
+        <GotoButtons dispatch={dispatch} />
         <KIFLoadTextArea
           handleClick={(kif: string) => {
             dispatch({ type: "loadKIF", kif });
