@@ -7,21 +7,21 @@ import { ShogiBoard } from "./ShogiBoard";
 import { KIFLoadTextArea } from "./KIFLoadTextArea";
 import { moveDataToKIF } from "./util";
 
-/** 合法手の中でfrom(駒を打つ場合はpiece)となり得るマスをクリックした状態 */
-export type ClickFrom =
+/** 合法手の中でfrom(駒を打つ場合はpiece)となり得るマスを選択した状態 */
+export type MoveFrom =
   | { type: "none" }
   | { type: "normal"; from: shogi.Square.Square }
   | { type: "drop"; piece: shogi.Piece.Piece };
 
 export type GameState = {
   game: shogi.Game;
-  clickFrom: ClickFrom;
+  moveFrom: MoveFrom;
   attackSquares: Array<shogi.Square.Square>;
   reverse: boolean;
 };
 
 export const initialGameState = (): GameState => {
-  return { game: new shogi.Game(), clickFrom: { type: "none" }, attackSquares: [], reverse: false };
+  return { game: new shogi.Game(), moveFrom: { type: "none" }, attackSquares: [], reverse: false };
 };
 
 export type DragItem =
@@ -31,7 +31,9 @@ export type DragItem =
 export type GameAction =
   | { type: "clickBoard"; square: shogi.Square.Square }
   | { type: "clickHand"; piece: shogi.Piece.Piece }
-  // TODO: "dragBoard"、"dragHand"、"drop"に分ける
+  | { type: "dragBoardStart"; from: shogi.Square.Square }
+  | { type: "dragHandStart"; piece: shogi.Piece.Piece }
+  | { type: "dragEnd" }
   | { type: "dragNormalMove"; from: shogi.Square.Square; to: shogi.Square.Square }
   | { type: "dragDropMove"; piece: shogi.Piece.Piece; to: shogi.Square.Square }
   | { type: "gotoNext" }
@@ -50,7 +52,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 
     // 非合法手
     if (moves.length === 0) {
-      return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      return { ...state, moveFrom: { type: "none" }, attackSquares: [] };
     }
 
     let promotion = false;
@@ -76,7 +78,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     return {
       ...state,
       game: clone,
-      clickFrom: { type: "none" },
+      moveFrom: { type: "none" },
       attackSquares: [],
     };
   };
@@ -86,15 +88,15 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 
     // クリックしたのが手番側の駒でなければ非合法手
     if (shogi.Piece.color(piece) !== state.game.currentNode.position.turn) {
-      return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      return { ...state, moveFrom: { type: "none" }, attackSquares: [] };
     }
     // 非合法手
     if (
       !state.game.currentNode.position
         .legalMoves()
-        .some((move) => move.type === "drop" && move.pieceType === pieceType)
+        .some((move) => move.type === "drop" && move.pieceType === pieceType && move.to === to)
     ) {
-      return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      return { ...state, moveFrom: { type: "none" }, attackSquares: [] };
     }
 
     const move: shogi.Move.Move = { type: "drop", pieceType, to: to };
@@ -104,7 +106,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     return {
       ...state,
       game: clone,
-      clickFrom: { type: "none" },
+      moveFrom: { type: "none" },
       attackSquares: [],
     };
   };
@@ -112,7 +114,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
   switch (action.type) {
     case "clickBoard": {
       const legalMoves = state.game.currentNode.position.legalMoves();
-      switch (state.clickFrom.type) {
+      switch (state.moveFrom.type) {
         case "none": {
           // 合法手の中でfromが一致している手
           const moves = legalMoves.filter(
@@ -120,27 +122,27 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
           );
           // 非合法手
           if (moves.length === 0) {
-            return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+            return { ...state, moveFrom: { type: "none" }, attackSquares: [] };
           }
           return {
             ...state,
-            clickFrom: { type: "normal", from: action.square },
+            moveFrom: { type: "normal", from: action.square },
             attackSquares: moves.map((move) => move.to),
           };
         }
         case "normal":
-          return normalMove(state.clickFrom.from, action.square);
+          return normalMove(state.moveFrom.from, action.square);
         case "drop":
-          return dropMove(state.clickFrom.piece, action.square);
+          return dropMove(state.moveFrom.piece, action.square);
         default:
           // eslintが警告してくるので...
           console.error("unreachable");
-          return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+          return { ...state, moveFrom: { type: "none" }, attackSquares: [] };
       }
     }
     case "clickHand": {
-      if (state.clickFrom.type !== "none") {
-        return { ...state, clickFrom: { type: "none" }, attackSquares: [] };
+      if (state.moveFrom.type !== "none") {
+        return { ...state, moveFrom: { type: "none" }, attackSquares: [] };
       }
       const legalMoves = state.game.currentNode.position.legalMoves();
       const moves = legalMoves.filter(
@@ -149,16 +151,46 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       if (moves.length === 0) {
         return {
           ...state,
-          clickFrom: { type: "none" },
+          moveFrom: { type: "none" },
           attackSquares: [],
         };
       }
       return {
         ...state,
-        clickFrom: { type: "drop", piece: action.piece },
+        moveFrom: { type: "drop", piece: action.piece },
         attackSquares: moves.map((move) => move.to),
       };
     }
+    case "dragBoardStart": {
+      return {
+        ...state,
+        moveFrom: { type: "none" },
+        attackSquares: state.game.currentNode.position
+          .legalMoves()
+          .filter((move) => move.type === "normal" && move.from === action.from)
+          .map((move) => move.to),
+      };
+    }
+    case "dragHandStart":
+      return {
+        ...state,
+        moveFrom: { type: "none" },
+        attackSquares: state.game.currentNode.position
+          .legalMoves()
+          .filter(
+            (move) =>
+              move.type === "drop" &&
+              move.pieceType === shogi.Piece.pieceType(action.piece) &&
+              shogi.Piece.color(action.piece) === state.game.currentNode.position.turn
+          )
+          .map((move) => move.to),
+      };
+    case "dragEnd":
+      return {
+        ...state,
+        moveFrom: { type: "none" },
+        attackSquares: [],
+      };
     case "dragNormalMove":
       return normalMove(action.from, action.to);
     case "dragDropMove":
@@ -169,7 +201,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       return {
         ...state,
         game: clone,
-        clickFrom: { type: "none" },
+        moveFrom: { type: "none" },
         attackSquares: [],
       };
     }
@@ -179,7 +211,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       return {
         ...state,
         game: clone,
-        clickFrom: { type: "none" },
+        moveFrom: { type: "none" },
         attackSquares: [],
       };
     }
@@ -189,7 +221,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       return {
         ...state,
         game: clone,
-        clickFrom: { type: "none" },
+        moveFrom: { type: "none" },
         attackSquares: [],
       };
     }
@@ -199,7 +231,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       return {
         ...state,
         game: clone,
-        clickFrom: { type: "none" },
+        moveFrom: { type: "none" },
         attackSquares: [],
       };
     }
@@ -210,7 +242,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       return {
         ...state,
         game: clone,
-        clickFrom: { type: "none" },
+        moveFrom: { type: "none" },
         attackSquares: [],
       };
     }
@@ -220,14 +252,14 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         console.error(game2);
         return {
           ...state,
-          clickFrom: { type: "none" },
+          moveFrom: { type: "none" },
           attackSquares: [],
         };
       }
       return {
         ...state,
         game: game2,
-        clickFrom: { type: "none" },
+        moveFrom: { type: "none" },
         attackSquares: [],
       };
     }

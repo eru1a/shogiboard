@@ -16,6 +16,8 @@ export type SquareProps = {
   handleClick: () => void;
   handleBoardDrop: (from: shogi.Square.Square, to: shogi.Square.Square) => void;
   handleHandDrop: (piece: shogi.Piece.Piece, to: shogi.Square.Square) => void;
+  handleDragStart: (from: shogi.Square.Square) => void;
+  handleDragEnd: () => void;
 };
 
 export const Square: React.FC<SquareProps> = ({
@@ -28,10 +30,14 @@ export const Square: React.FC<SquareProps> = ({
   handleClick,
   handleBoardDrop,
   handleHandDrop,
+  handleDragStart,
+  handleDragEnd,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [, drag] = useDrag({
     canDrag: () => piece !== undefined,
+    begin: () => handleDragStart(square),
+    end: () => handleDragEnd(),
     item: {
       type: "board",
       from: square,
@@ -59,6 +65,7 @@ export const Square: React.FC<SquareProps> = ({
   if (attack) background = "lightgray";
 
   return (
+    // TODO: 直接backgroundを描画するのではなくOverlayを用意する
     <div
       ref={ref}
       className="square"

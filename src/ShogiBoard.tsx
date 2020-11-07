@@ -13,7 +13,7 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
   dispatch,
 }) => {
   const position = state.game.currentNode.position;
-  const clickFrom = state.clickFrom;
+  const moveFrom = state.moveFrom;
 
   const lastToSq = MoveData.getMove(state.game.currentNode.lastMove)?.to;
 
@@ -22,9 +22,11 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
       <Hand
         position={position}
         color={"b"}
-        from={clickFrom.type === "drop" ? clickFrom.piece : undefined}
+        from={moveFrom.type === "drop" ? moveFrom.piece : undefined}
         reverse={state.reverse}
         handleClick={(piece) => dispatch({ type: "clickHand", piece })}
+        handleDragStart={(piece) => dispatch({ type: "dragHandStart", piece })}
+        handleDragEnd={() => dispatch({ type: "dragEnd" })}
       />
     </div>
   );
@@ -33,9 +35,11 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
       <Hand
         position={position}
         color={"w"}
-        from={clickFrom.type === "drop" ? clickFrom.piece : undefined}
+        from={moveFrom.type === "drop" ? moveFrom.piece : undefined}
         reverse={state.reverse}
         handleClick={(piece) => dispatch({ type: "clickHand", piece })}
+        handleDragStart={(piece) => dispatch({ type: "dragHandStart", piece })}
+        handleDragEnd={() => dispatch({ type: "dragEnd" })}
       />
     </div>
   );
@@ -43,20 +47,21 @@ export const ShogiBoard: React.FC<{ state: GameState; dispatch: React.Dispatch<G
     <div className="board">
       <Board
         position={position}
-        from={clickFrom.type === "normal" ? clickFrom.from : undefined}
+        from={moveFrom.type === "normal" ? moveFrom.from : undefined}
         attack={state.attackSquares}
         last={lastToSq}
         reverse={state.reverse}
         handleClick={(square) => dispatch({ type: "clickBoard", square })}
         handleBoardDrop={(from, to) => dispatch({ type: "dragNormalMove", from, to })}
         handleHandDrop={(piece, to) => dispatch({ type: "dragDropMove", piece, to })}
+        handleDragStart={(from) => dispatch({ type: "dragBoardStart", from })}
+        handleDragEnd={() => dispatch({ type: "dragEnd" })}
       />
     </div>
   );
 
   return (
     // TODO: プレビューのカスタマイズ
-    // TODO: Handの大きさは合ってるけど駒が小さい
     <DndProvider backend={isMobile().any ? TouchBackend : HTML5Backend}>
       <div
         id="shogiboard"

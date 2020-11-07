@@ -79,10 +79,12 @@ const pieceToCSA: Map<shogi.PieceType.PieceType, string> = new Map([
   ["+B", "UM"],
 ]);
 
+// TODO: ドラッグされた時に透明にする
 export type PieceProps = {
   piece: shogi.Piece.Piece;
 };
 
+// TODO: 真ん中に描画する
 export const PieceWrapper = styled.div`
   .FU,
   .TO {

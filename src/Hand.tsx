@@ -10,9 +10,19 @@ export type HandProps = {
   from?: shogi.Piece.Piece;
   reverse?: boolean;
   handleClick: (piece: shogi.Piece.Piece) => void;
+  handleDragStart: (piece: shogi.Piece.Piece) => void;
+  handleDragEnd: () => void;
 };
 
-export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, handleClick }) => {
+export const Hand: React.SFC<HandProps> = ({
+  position,
+  color,
+  from,
+  reverse,
+  handleClick,
+  handleDragStart,
+  handleDragEnd,
+}) => {
   const pieces = shogi.Piece.handPieces.filter((piece) => shogi.Piece.color(piece) === color);
   // reverseがtrueだったら逆のcolorにする
   const color2 = reverse ? shogi.Color.inv(color) : color;
@@ -54,6 +64,8 @@ export const Hand: React.SFC<HandProps> = ({ position, color, from, reverse, han
               color={color2}
               background={background}
               handleClick={() => handleClick(piece)}
+              handleDragStart={() => handleDragStart(piece)}
+              handleDragEnd={handleDragEnd}
             />
           </div>
         );
@@ -69,6 +81,8 @@ export type HandPieceProps = {
   color: string;
   background: string | undefined;
   handleClick: () => void;
+  handleDragStart: () => void;
+  handleDragEnd: () => void;
 };
 
 export const HandPiece: React.FC<HandPieceProps> = ({
@@ -78,8 +92,12 @@ export const HandPiece: React.FC<HandPieceProps> = ({
   color,
   background,
   handleClick,
+  handleDragStart,
+  handleDragEnd,
 }) => {
   const [, drag] = useDrag({
+    begin: () => handleDragStart(),
+    end: () => handleDragEnd(),
     item: {
       type: "hand",
       piece: piece,
